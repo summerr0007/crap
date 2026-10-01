@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>花旗骰 (Craps 2D) - 完整美式玩法大滿貫</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 頂部資訊列 -->
+        <header class="header-bar">
+            <div class="brand">
+                <span class="logo-icon">🎲</span>
+                <h1>Craps 2D <span class="badge">完整美式玩法版</span></h1>
+            </div>
+            <div class="stats-group">
+                <button class="btn btn-guide-trigger" id="btn-open-guide">
+                    📖 玩法說明與數額規則
+                </button>
+                <div class="stat-card">
+                    <span class="stat-label">籌碼本金 Bankroll</span>
+                    <span class="stat-value gold" id="bankroll">$1,000</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">當前總注 Total Bet</span>
+                    <span class="stat-value" id="total-bet">$0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">階段 Phase</span>
+                    <span class="stat-value highlight" id="game-phase">Come-Out Roll</span>
+                </div>
+                <div class="stat-card puck-card">
+                    <span class="stat-label">Puck 標記</span>
+                    <div class="puck off" id="puck-badge">OFF</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要遊戲區 -->
+        <main class="game-layout">
+            <!-- 左欄：賭桌與骰子控制 -->
+            <section class="table-section">
+                <!-- 骰子與操作按鈕列 -->
+                <div class="dice-control-panel">
+                    <div class="dice-container">
+                        <div class="dice" id="dice-1">
+                            <div class="dot center"></div>
+                        </div>
+                        <div class="dice" id="dice-2">
+                            <div class="dot center"></div>
+                        </div>
+                        <div class="roll-total-box">
+                            <span class="total-label">點數和</span>
+                            <span class="total-value" id="dice-sum">-</span>
+                        </div>
+                    </div>
+                    <div class="main-actions">
+                        <button class="btn btn-roll" id="btn-roll">
+                            <span class="btn-icon">🎲</span> 擲骰子 (Roll)
+                        </button>
+                        <button class="btn btn-secondary" id="btn-clear">
+                            清空下注
+                        </button>
+                        <button class="btn btn-outline" id="btn-reset">
+                            重置籌碼
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2D 賭桌板面 (Felt Table) -->
+                <div class="craps-table">
+                    <div class="table-header-info">
+                        <h2>美式花旗骰全功能賭桌 (Full Craps Table Layout)</h2>
+                        <span class="tip-tag">💡 點擊下方區域即可放置籌碼</span>
+                    </div>
+
+                    <!-- 點數牆 (Point Numbers Wall & Place Bets) -->
+                    <div class="points-wall">
+                        <div class="section-label-tag">PLACE BETS (買指定點數 - 需符合派彩倍數)</div>
+                        <div class="place-grid">
+                            <div class="point-box" data-point="4">
+                                <div class="point-number">4</div>
+                                <div class="point-odds-info">Place 賠 9:5 ($5倍數)</div>
+                                <div class="chip-slot" id="slot-place-4"></div>
+                            </div>
+                            <div class="point-box" data-point="5">
+                                <div class="point-number">5</div>
+                                <div class="point-odds-info">Place 賠 7:5 ($5倍數)</div>
+                                <div class="chip-slot" id="slot-place-5"></div>
+                            </div>
+                            <div class="point-box" data-point="6">
+                                <div class="point-number">6</div>
+                                <div class="point-odds-info">Place 賠 7:6 ($6倍數)</div>
+                                <div class="chip-slot" id="slot-place-6"></div>
+                            </div>
+                            <div class="point-box" data-point="8">
+                                <div class="point-number">8</div>
+                                <div class="point-odds-info">Place 賠 7:6 ($6倍數)</div>
+                                <div class="chip-slot" id="slot-place-8"></div>
+                            </div>
+                            <div class="point-box" data-point="9">
+                                <div class="point-number">9</div>
+                                <div class="point-odds-info">Place 賠 7:5 ($5倍數)</div>
+                                <div class="chip-slot" id="slot-place-9"></div>
+                            </div>
+                            <div class="point-box" data-point="10">
+                                <div class="point-number">10</div>
+                                <div class="point-odds-info">Place 賠 9:5 ($5倍數)</div>
+                                <div class="chip-slot" id="slot-place-10"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 直接指定點數鋪注區 (Direct Lay Bets Wall: Lay 4, 5, 6, 8, 9, 10) -->
+                    <div class="lay-wall">
+                        <div class="section-label-tag blue">DIRECT LAY BETS (鋪指定號碼 - 需符合派彩倍數)</div>
+                        <div class="lay-grid">
+                            <div class="lay-box" data-lay="4">
+                                <div class="lay-title">Lay 4</div>
+                                <div class="lay-odds-info">賠 1:2 ($2倍數)</div>
+                                <div class="chip-slot" id="slot-lay-4"></div>
+                            </div>
+                            <div class="lay-box" data-lay="5">
+                                <div class="lay-title">Lay 5</div>
+                                <div class="lay-odds-info">賠 2:3 ($3倍數)</div>
+                                <div class="chip-slot" id="slot-lay-5"></div>
+                            </div>
+                            <div class="lay-box" data-lay="6">
+                                <div class="lay-title">Lay 6</div>
+                                <div class="lay-odds-info">賠 5:6 ($6倍數)</div>
+                                <div class="chip-slot" id="slot-lay-6"></div>
+                            </div>
+                            <div class="lay-box" data-lay="8">
+                                <div class="lay-title">Lay 8</div>
+                                <div class="lay-odds-info">賠 5:6 ($6倍數)</div>
+                                <div class="chip-slot" id="slot-lay-8"></div>
+                            </div>
+                            <div class="lay-box" data-lay="9">
+                                <div class="lay-title">Lay 9</div>
+                                <div class="lay-odds-info">賠 2:3 ($3倍數)</div>
+                                <div class="chip-slot" id="slot-lay-9"></div>
+                            </div>
+                            <div class="lay-box" data-lay="10">
+                                <div class="lay-title">Lay 10</div>
+                                <div class="lay-odds-info">賠 1:2 ($2倍數)</div>
+                                <div class="chip-slot" id="slot-lay-10"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Come / Don't Come 隨時進場區域 -->
+                    <div class="come-grid">
+                        <div class="bet-zone zone-come" id="zone-come">
+                            <div class="zone-header">
+                                <span class="zone-title">COME (來注)</span>
+                                <span class="zone-desc">Point Phase 專用 | 下一次擲骰 7/11 贏 | 2/3/12 輸</span>
+                            </div>
+                            <div class="chip-slot" id="slot-come"></div>
+                        </div>
+                        <div class="bet-zone zone-dont-come" id="zone-dont-come">
+                            <div class="zone-header">
+                                <span class="zone-title">DON'T COME (不來注)</span>
+                                <span class="zone-desc">Point Phase 專用 | 下一次擲骰 2/3 贏 | 12 平局 | 7/11 輸</span>
+                            </div>
+                            <div class="chip-slot" id="slot-dont-come"></div>
+                        </div>
+                    </div>
+
+                    <!-- 主下注區域網格 -->
+                    <div class="main-betting-grid">
+                        <!-- Pass Line 主注區 -->
+                        <div class="bet-zone zone-pass" id="zone-pass">
+                            <div class="zone-header">
+                                <span class="zone-title">PASS LINE (過關線)</span>
+                                <span class="zone-desc">首擲 7/11 贏 | 2/3/12 輸 | 4-10 立 Point</span>
+                            </div>
+                            <div class="chip-slot" id="slot-pass"></div>
+                        </div>
+
+                        <!-- ★ Pass Odds (Take Odds) 獨立專用區 (Pass Line 正後方) -->
+                        <div class="bet-zone zone-odds locked" id="zone-odds">
+                            <div class="odds-zone-badge">★ 0% 莊家優勢 Pass Odds ★</div>
+                            <div class="zone-header">
+                                <span class="zone-title">PASS ODDS (買 Odds - 賭 Point 先出)</span>
+                                <span class="zone-desc" id="odds-desc-text">【放置在 Pass Line 正後方】 Point 確立後解鎖</span>
+                            </div>
+                            <div class="odds-rate-badge" id="odds-rate-display">純真實概率賠付</div>
+                            <div class="chip-slot" id="slot-odds"></div>
+                        </div>
+
+                        <!-- Don't Pass Line 反向區 -->
+                        <div class="bet-zone zone-dont-pass" id="zone-dont-pass">
+                            <div class="zone-header">
+                                <span class="zone-title">DON'T PASS LINE (不過關線)</span>
+                                <span class="zone-desc">首擲 2/3 贏 | 12 平局 | 7/11 輸</span>
+                            </div>
+                            <div class="chip-slot" id="slot-dont-pass"></div>
+                        </div>
+
+                        <!-- ★ Don't Pass Lay Odds 獨立專用區 (Don't Pass 旁邊/上方) -->
+                        <div class="bet-zone zone-lay-odds locked" id="zone-lay-odds">
+                            <div class="odds-zone-badge dark">★ 0% 莊家優勢 Lay Odds ★</div>
+                            <div class="zone-header">
+                                <span class="zone-title">DON'T PASS LAY ODDS (鋪 Odds - 賭 7 先出)</span>
+                                <span class="zone-desc" id="lay-odds-desc-text">【放置在 Don't Pass 旁邊】 Point 確立後解鎖</span>
+                            </div>
+                            <div class="odds-rate-badge dark" id="lay-odds-rate-display">反向天平賠率</div>
+                            <div class="chip-slot" id="slot-lay-odds"></div>
+                        </div>
+
+                        <!-- Field Bet 外場注 -->
+                        <div class="bet-zone zone-field" id="zone-field">
+                            <div class="zone-header">
+                                <span class="zone-title">FIELD BET (外場單次注)</span>
+                                <span class="zone-desc">2, 3, 4, 9, 10, 11, 12 即贏 (2 賠雙倍 / 12 賠三倍)</span>
+                            </div>
+                            <div class="chip-slot" id="slot-field"></div>
+                        </div>
+                    </div>
+
+                    <!-- 次要高倍率注區域 (Hardways & One-Roll Proposition Bets) -->
+                    <div class="special-bets-container">
+                        <!-- 硬牌區 Hardways -->
+                        <div class="special-section hardways-section">
+                            <div class="special-title">HARDWAYS (硬牌對子區 - 直到 7 或軟點前有效)</div>
+                            <div class="special-grid">
+                                <div class="prop-box" data-prop="hard4">
+                                    <span class="prop-name">Hard 4 (2+2)</span>
+                                    <span class="prop-odds">賠 7:1</span>
+                                    <div class="chip-slot" id="slot-hard4"></div>
+                                </div>
+                                <div class="prop-box" data-prop="hard6">
+                                    <span class="prop-name">Hard 6 (3+3)</span>
+                                    <span class="prop-odds">賠 9:1</span>
+                                    <div class="chip-slot" id="slot-hard6"></div>
+                                </div>
+                                <div class="prop-box" data-prop="hard8">
+                                    <span class="prop-name">Hard 8 (4+4)</span>
+                                    <span class="prop-odds">賠 9:1</span>
+                                    <div class="chip-slot" id="slot-hard8"></div>
+                                </div>
+                                <div class="prop-box" data-prop="hard10">
+                                    <span class="prop-name">Hard 10 (5+5)</span>
+                                    <span class="prop-odds">賠 7:1</span>
+                                    <div class="chip-slot" id="slot-hard10"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 單次高賠率注 Proposition Bets -->
+                        <div class="special-section prop-section">
+                            <div class="special-title">ONE-ROLL PROPS (單次單點高倍率注)</div>
+                            <div class="special-grid prop-grid">
+                                <div class="prop-box danger" data-prop="any7">
+                                    <span class="prop-name">Any 7</span>
+                                    <span class="prop-odds">賠 4:1</span>
+                                    <div class="chip-slot" id="slot-any7"></div>
+                                </div>
+                                <div class="prop-box" data-prop="anyCraps">
+                                    <span class="prop-name">Any Craps (2,3,12)</span>
+                                    <span class="prop-odds">賠 7:1</span>
+                                    <div class="chip-slot" id="slot-anyCraps"></div>
+                                </div>
+                                <div class="prop-box highlight" data-prop="yo11">
+                                    <span class="prop-name">Yo (11)</span>
+                                    <span class="prop-odds">賠 15:1</span>
+                                    <div class="chip-slot" id="slot-yo11"></div>
+                                </div>
+                                <div class="prop-box gold" data-prop="aces2">
+                                    <span class="prop-name">Aces (1+1=2)</span>
+                                    <span class="prop-odds">賠 30:1</span>
+                                    <div class="chip-slot" id="slot-aces2"></div>
+                                </div>
+                                <div class="prop-box gold" data-prop="boxcars12">
+                                    <span class="prop-name">Twelve (6+6=12)</span>
+                                    <span class="prop-odds">賠 30:1</span>
+                                    <div class="chip-slot" id="slot-boxcars12"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右欄：籌碼選擇與荷官日誌 -->
+            <section class="side-section">
+                <!-- 籌碼選擇器 -->
+                <div class="panel chip-panel">
+                    <h3>選擇下注籌碼</h3>
+                    <div class="chip-selector">
+                        <button class="chip chip-10 active" data-value="10">$10</button>
+                        <button class="chip chip-25" data-value="25">$25</button>
+                        <button class="chip chip-50" data-value="50">$50</button>
+                        <button class="chip chip-100" data-value="100">$100</button>
+                        <button class="chip chip-500" data-value="500">$500</button>
+                    </div>
+                </div>
+
+                <!-- 荷官動態日誌 -->
+                <div class="panel log-panel">
+                    <div class="log-header">
+                        <h3>荷官日誌 (Dealer Log)</h3>
+                        <button class="btn-text" id="btn-clear-log">清空歷史</button>
+                    </div>
+                    <div class="log-content" id="dealer-log">
+                        <div class="log-entry system">歡迎來到完整版美式花旗骰！選籌碼下注 Pass/Don't Pass 開局。</div>
+                    </div>
+                </div>
+
+                <!-- Odds & Lay 玩法教學卡片 -->
+                <div class="panel odds-guide-panel">
+                    <h3>💡 最佳下注金額倍數 (Proper Multiples)</h3>
+                    <ul class="guide-list">
+                        <li><strong>Place 6 / 8</strong>：建議下注 <b>$6 的倍數</b>（如 $6, $12, $30），否則無法享有 7:6 完全賠率！</li>
+                        <li><strong>Place 4 / 5 / 9 / 10</strong>：建議下注 <b>$5 的倍數</b>。</li>
+                        <li><strong>Pass Odds (6 / 8)</strong>：賠率 6:5，建議下注 <b>$5 的倍數</b>。</li>
+                        <li><strong>Pass Odds (5 / 9)</strong>：賠率 3:2，建議下注 <b>偶數 ($2 的倍數)</b>。</li>
+                        <li><strong>Lay 5 / 9</strong>：賠率 2:3，建議下注 <b>$3 的倍數</b>。</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 📖 玩法說明彈窗 Modal -->
+    <div class="modal-overlay" id="guide-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>📖 美式花旗骰 (Craps) 完整玩法說明與下注金額倍數規範</h2>
+                <button class="btn-close-modal" id="btn-close-guide">&times;</button>
+            </div>
+            <div class="modal-body">
+                <section class="guide-section">
+                    <h3>1. 遊戲核心流程</h3>
+                    <p>花旗骰使用兩顆標準 6 面骰子，每局遊戲分為兩個階段：</p>
+                    <div class="flow-steps">
+                        <div class="step-card">
+                            <h4>第一階段：首輪擲骰 (Come-out Roll)</h4>
+                            <ul>
+                                <li><strong>7 或 11 (Natural)</strong>：Pass Line 直接贏，本局結束。</li>
+                                <li><strong>2、3 或 12 (Craps)</strong>：Pass Line 直接輸，本局結束。</li>
+                                <li><strong>4, 5, 6, 8, 9, 10</strong>：該數字成為本局目標點數 <strong>Point</strong>，Puck 切換為 <code>ON</code>，進入第二階段。</li>
+                            </ul>
+                        </div>
+                        <div class="step-card">
+                            <h4>第二階段：點數圈 (Point Phase)</h4>
+                            <ul>
+                                <li>Shooter 持續擲骰，直到出現以下兩種點數之一：</li>
+                                <li><strong>再次擲出 Point 點數</strong>：Pass Line 與 Pass Odds 獲勝！</li>
+                                <li><strong>擲出 7 (Seven-Out)</strong>：Pass Line 失敗，Don't Pass 與 Lay Odds / Direct Lay 獲勝。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="guide-section">
+                    <h3>2. 關鍵下注金額倍數規範 (Proper Bet Multiples)</h3>
+                    <p>在 Point Phase 下注時，為了避免派彩時產生無法整除的小數點而遭賭場無條件捨去，賭場與老手皆嚴格遵守以下面額倍數規範：</p>
+                    <table class="guide-table">
+                        <thead>
+                            <tr>
+                                <th>下注區域</th>
+                                <th>賠率</th>
+                                <th>建議正確下注倍數</th>
+                                <th>錯誤面額範例與代價</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Place 6 / Place 8</strong></td>
+                                <td>7 : 6</td>
+                                <td><b>$6 的倍數</b> ($6, $12, $30)</td>
+                                <td>若下注 $5，賭場只會按 1:1 給 $5（損失 $1）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Place 5 / Place 9</strong></td>
+                                <td>7 : 5</td>
+                                <td><b>$5 的倍數</b> ($5, $10, $25)</td>
+                                <td>若下注 $7，小數點遭捨去只給 $9</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pass Odds (點數 6 / 8)</strong></td>
+                                <td>6 : 5 (0% 莊優)</td>
+                                <td><b>$5 的倍數</b> ($5, $10, $25)</td>
+                                <td>若下注 $7，派彩無法整除</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pass Odds (點數 5 / 9)</strong></td>
+                                <td>3 : 2 (0% 莊優)</td>
+                                <td><b>偶數 ($2 的倍數)</b> ($2, $6, $10)</td>
+                                <td>若下注奇數 $5，會產生 $7.5（賭場只給 $7）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lay Odds / Direct Lay (點數 5 / 9)</strong></td>
+                                <td>2 : 3 (0% 莊優)</td>
+                                <td><b>$3 的倍數</b> ($6, $9, $30)</td>
+                                <td>押 $10 贏 $6.66（小數點捨去）</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lay Odds / Direct Lay (點數 6 / 8)</strong></td>
+                                <td>5 : 6 (0% 莊優)</td>
+                                <td><b>$6 的倍數</b> ($6, $12, $30)</td>
+                                <td>押 $10 贏 $8.33（小數點捨去）</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="guide-section highlight-box">
+                    <h3>💡 賭場 3X-4X-5X Odds 上限規定</h3>
+                    <p>許多賭場會限制 Odds 下注的最大倍數：</p>
+                    <p>• Point 4/10：最多允許原注的 <strong>3 倍</strong> Odds。</p>
+                    <p>• Point 5/9：最多允許原注的 <strong>4 倍</strong> Odds。</p>
+                    <p>• Point 6/8：最多允許原注的 <strong>5 倍</strong> Odds。</p>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-roll" id="btn-confirm-modal">我知道了，開始遊戲！</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
